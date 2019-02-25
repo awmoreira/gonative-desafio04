@@ -8,16 +8,7 @@ import {
 import styles from './styles';
 import { colors } from '../../styles';
 
-const product = {
-  id: 1,
-  name: 'Camiseta Hyperas Preta',
-  brand: 'Quiksilver',
-  image:
-    'https://t-static.dafiti.com.br/czCvp3wBNPfehf7omYZfJacnxPY=/fit-in/427x620/dafitistatic-a.akamaihd.net%2fp%2fquiksilver-camiseta-quiksilver-hyperas-preta-8710-7136243-1-product.jpg',
-  price: 49.99,
-};
-
-const Product = () => (
+const Product = ({ product }) => (
   <View style={styles.container}>
     <View style={styles.content}>
       <Image style={styles.image} source={{ uri: product.image }} />

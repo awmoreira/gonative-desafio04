@@ -1,89 +1,150 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-import { View, StatusBar, FlatList } from 'react-native';
+import {
+  View, FlatList, TouchableOpacity, Text, ActivityIndicator,
+} from 'react-native';
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { Creators as CategoryActions } from '../../store/ducks/category';
+import { Creators as CatProductsActions } from '../../store/ducks/catProducts';
 
 import styles from './styles';
-import { colors } from '../../styles';
 import ProductItem from './components/ProductItem';
 
-const categoryProducts = [
-  {
-    id: 1,
-    name: 'Camiseta Hyperas Preta',
-    brand: 'Quiksilver',
-    image:
-      'https://t-static.dafiti.com.br/czCvp3wBNPfehf7omYZfJacnxPY=/fit-in/427x620/dafitistatic-a.akamaihd.net%2fp%2fquiksilver-camiseta-quiksilver-hyperas-preta-8710-7136243-1-product.jpg',
-    price: 49.99,
-  },
-  {
-    id: 2,
-    name: 'Camiseta Double Tap Preta',
-    brand: 'Quiksilver',
-    image:
-      'https://t-static.dafiti.com.br/EpEXepU-tSbgo6ZMl4Y5BOdjelw=/fit-in/427x620/dafitistatic-a.akamaihd.net%2fp%2fquiksilver-camiseta-quiksilver-double-tap-preta-7115-8165043-1-product.jpg',
-    price: 59.99,
-  },
-  {
-    id: 3,
-    name: 'Camiseta Logo Azul',
-    brand: 'Red Bull',
-    image:
-      'https://t-static.dafiti.com.br/aC9871vKWfL3bDgbhLx5sFLa7xs=/fit-in/427x620/dafitistatic-a.akamaihd.net%2fp%2fred-bull-camiseta-red-bull-logo-azul-0272-7714033-1-product.jpg',
-    price: 54.99,
-  },
-  {
-    id: 4,
-    name: 'Camiseta Primo Tipper',
-    brand: 'Rip Curl',
-    image:
-      'https://t-static.dafiti.com.br/weG0u9eKZ4KBV-G0XFOQ5hoY4eI=/fit-in/427x620/dafitistatic-a.akamaihd.net%2fp%2frip-curl-camiseta-rip-curl-primo-tipper-preto-8138-3441052-1-product.jpg',
-    price: 39.99,
-  },
-];
+class Main extends Component {
+  static navigationOptions = {
+    title: 'GoCommerce',
+    tabBarIcon: ({ tintColor }) => <Icon name="home" size={20} color={tintColor} />,
+  };
 
-const Main = ({ navigation }) => (
-  <View style={styles.container}>
-    <StatusBar barStyle="light-content" />
+  categoriesLoaded = false;
 
-    <FlatList
-      data={categoryProducts}
-      keyExtractor={catProduct => String(catProduct.id)}
-      numColumns={2}
-      renderItem={({ item }) => (
-        <ProductItem
-          onPress={() => navigation.navigate('Product', { product: item })}
-          product={item}
-        />
-      )}
-    />
-  </View>
-);
+  static propTypes = {
+    navigation: PropTypes.shape({
+      navigate: PropTypes.func,
+    }).isRequired,
+    getCategoryRequest: PropTypes.func.isRequired,
+    category: PropTypes.shape({
+      data: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
+      })),
+      loading: PropTypes.bool,
+    }).isRequired,
+    getCatProductsRequest: PropTypes.func.isRequired,
+    catProducts: PropTypes.shape({
+      data: PropTypes.arrayOf(PropTypes.shape({
+        id: PropTypes.number,
+      })),
+      loading: PropTypes.bool,
+    }).isRequired,
+  };
 
-Main.navigationOptions = () => ({
-  title: 'GoCommerce',
-  headerTitleStyle: {
-    color: colors.primary,
-    textAlign: 'center',
-    flex: 1,
-  },
-  headerStyle: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 0,
-  },
+  componentDidMount() {
+    const { getCategoryRequest } = this.props;
+
+    getCategoryRequest();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!this.categoriesLoaded) {
+      const { category } = this.props;
+
+      if (category.data.length > 0) {
+        this.categoriesLoaded = true;
+
+        const { getCatProductsRequest } = prevProps;
+
+        getCatProductsRequest(category.data[0].id);
+      }
+    }
+  }
+
+  render() {
+    const {
+      category, catProducts, navigation, getCatProductsRequest,
+    } = this.props;
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.categoryBar}>
+          {!category.loading && (
+            <FlatList
+              style={styles.categoryList}
+              data={category.data}
+              extraData={catProducts.id}
+              keyExtractor={category => String(category.id)}
+              showsHorizontalScrollIndicator={false}
+              horizontal
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    getCatProductsRequest(item.id);
+                  }}
+                  style={
+                    catProducts.id === item.id
+                      ? [styles.category, styles.activeCategory]
+                      : styles.category
+                  }
+                >
+                  <Text
+                    style={
+                      catProducts.id === item.id
+                        ? [styles.categoryText, styles.activeCategoryText]
+                        : styles.categoryText
+                    }
+                  >
+                    {item.title}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+
+        {(category.loading || catProducts.loading) && (
+          <ActivityIndicator size="small" color="#C0C0C0" style={styles.loading} />
+        )}
+
+        {!catProducts.loading && (
+          <FlatList
+            data={catProducts.data}
+            keyExtractor={product => String(product.id)}
+            numColumns={2}
+            columnWrapperStyle={styles.columnContainer}
+            contentContainerStyle={styles.productList}
+            renderItem={({ item }) => (
+              <ProductItem
+                onPress={() => {
+                  navigation.navigate('Product', { productId: item.id });
+                }}
+                product={item}
+              />
+            )}
+          />
+        )}
+      </View>
+    );
+  }
+}
+
+const mapStateToProps = state => ({
+  category: state.category,
+  catProducts: state.catProducts,
 });
 
-// Main.propTypes = {
-//   navigation: PropTypes.shape({
-//     navigate: PropTypes.func,
-//   }).isRequired,
-//   categoryProducts: PropTypes.shape({
-//     products: PropTypes.arrayOf(
-//       PropTypes.shape({
-//         id: PropTypes.number,
-//       }),
-//     ),
-//   }).isRequired,
-// };
+const mapDispatchToProps = dispatch => bindActionCreators(
+  {
+    ...CategoryActions,
+    ...CatProductsActions,
+  },
+  dispatch,
+);
 
-export default Main;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Main);

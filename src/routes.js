@@ -1,26 +1,46 @@
-import { createAppContainer, createStackNavigator } from 'react-navigation';
+import {
+  createAppContainer,
+  createBottomTabNavigator,
+  createStackNavigator,
+} from 'react-navigation';
 import { colors } from './styles';
 
 import Main from './pages/Main';
 import Product from './pages/Product';
+import Cart from './pages/Cart';
 
-const Routes = createAppContainer(
-  createStackNavigator(
-    {
-      Main,
-      Product,
-    },
-    {
-      navigationOptions: {
-        headerStyle: {
-          backgroundColor: colors.secondary,
-          borderBottomWidth: 0,
-        },
-        headerTintColor: colors.white,
-        headerBackTitle: null,
+const Tabs = createBottomTabNavigator(
+  {
+    Main,
+    Cart,
+  },
+  {
+    tabBarOptions: {
+      activeTintColor: colors.primary,
+      inactiveTintColor: 'gray',
+      style: {
+        backgroundColor: '#fff',
       },
+      indicatorStyle: {
+        backgroundColor: '#000',
+      },
+      showLabel: false,
     },
-  ),
+  },
 );
+
+const Stack = createStackNavigator(
+  {
+    Main: {
+      screen: Tabs,
+    },
+    Product: { screen: Product },
+  },
+  {
+    initialRouteName: 'Main',
+  },
+);
+
+const Routes = createAppContainer(Stack);
 
 export default Routes;

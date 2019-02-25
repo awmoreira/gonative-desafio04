@@ -7,12 +7,11 @@ import styles from './styles';
 import { colors } from '../../styles';
 import CartItem from './components/CartItem';
 
-
 const Cart = ({ navigation }) => (
   <View style={styles.container}>
     <StatusBar barStyle="light-content" />
 
-    <FlatList
+    {/* <FlatList
       data={}
       keyExtractor={product => String(product.id)}
       renderItem={({ item }) => (
@@ -21,7 +20,7 @@ const Cart = ({ navigation }) => (
           product={item}
         />
       )}
-    />
+    /> */}
   </View>
 );
 
