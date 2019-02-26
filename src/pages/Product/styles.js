@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     height: 285,
     resizeMode: 'contain',
   },
-  content: {
+  box: {
     padding: metrics.basePadding,
     backgroundColor: colors.white,
     borderRadius: metrics.baseRadius,

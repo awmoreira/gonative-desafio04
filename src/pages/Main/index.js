@@ -5,8 +5,6 @@ import {
   View, FlatList, TouchableOpacity, Text, ActivityIndicator,
 } from 'react-native';
 
-import Icon from 'react-native-vector-icons/FontAwesome';
-
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Creators as CategoryActions } from '../../store/ducks/category';
@@ -14,11 +12,15 @@ import { Creators as CatProductsActions } from '../../store/ducks/catProducts';
 
 import styles from './styles';
 import ProductItem from './components/ProductItem';
+import { colors } from '../../styles';
 
 class Main extends Component {
   static navigationOptions = {
     title: 'GoCommerce',
-    tabBarIcon: ({ tintColor }) => <Icon name="home" size={20} color={tintColor} />,
+    headerTitleStyle: {
+      color: colors.primary,
+      textAlign: 'center',
+    },
   };
 
   categoriesLoaded = false;
@@ -29,16 +31,20 @@ class Main extends Component {
     }).isRequired,
     getCategoryRequest: PropTypes.func.isRequired,
     category: PropTypes.shape({
-      data: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
-      })),
+      data: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.number,
+        }),
+      ),
       loading: PropTypes.bool,
     }).isRequired,
     getCatProductsRequest: PropTypes.func.isRequired,
     catProducts: PropTypes.shape({
-      data: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
-      })),
+      data: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.number,
+        }),
+      ),
       loading: PropTypes.bool,
     }).isRequired,
   };
@@ -76,7 +82,7 @@ class Main extends Component {
               style={styles.categoryList}
               data={category.data}
               extraData={catProducts.id}
-              keyExtractor={category => String(category.id)}
+              keyExtractor={cat => String(cat.id)}
               showsHorizontalScrollIndicator={false}
               horizontal
               renderItem={({ item }) => (
@@ -97,7 +103,7 @@ class Main extends Component {
                         : styles.categoryText
                     }
                   >
-                    {item.title}
+                    {item.title.toUpperCase()}
                   </Text>
                 </TouchableOpacity>
               )}

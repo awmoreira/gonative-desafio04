@@ -1,53 +1,94 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 
-import { View, StatusBar, FlatList } from 'react-native';
+import CurrencyFormat from 'react-currency-format';
 
-import styles from './styles';
-import { colors } from '../../styles';
+import { View, FlatList, Text } from 'react-native';
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { Creators as CartActions } from '../../store/ducks/cart';
+
 import CartItem from './components/CartItem';
 
-const Cart = ({ navigation }) => (
-  <View style={styles.container}>
-    <StatusBar barStyle="light-content" />
+import styles from './styles';
+import { colors } from '~/styles';
 
-    {/* <FlatList
-      data={}
-      keyExtractor={product => String(product.id)}
-      renderItem={({ item }) => (
-        <CartItem
-          onPress={() => navigation.navigate('Product', { product: item })}
-          product={item}
+const Cart = ({
+  cart, total, removeProduct, updateProduct,
+}) => (
+  <View style={styles.container}>
+    {cart.data.length > 0 ? (
+      <Fragment>
+        <FlatList
+          data={cart.data}
+          extraData={cart.total}
+          keyExtractor={product => String(product.id)}
+          contentContainerStyle={styles.cartList}
+          renderItem={({ item }) => (
+            <CartItem
+              product={item}
+              handleUpdate={(quantity) => {
+                updateProduct(item.id, Number(quantity));
+              }}
+              handleDelete={() => {
+                removeProduct(item);
+              }}
+            />
+          )}
         />
-      )}
-    /> */}
+
+        <View style={styles.subtotal}>
+          <Text style={styles.subtotalText}>Subtotal</Text>
+          <CurrencyFormat
+            value={total}
+            displayType="text"
+            thousandSeparator="."
+            prefix="R$"
+            decimalSeparator=","
+            decimalScale={2}
+            fixedDecimalScale
+            renderText={value => <Text style={styles.subtotalPrice}>{value}</Text>}
+          />
+        </View>
+      </Fragment>
+    ) : (
+      <Text style={styles.message}>Não há produtos no carrinho</Text>
+    )}
   </View>
 );
 
-Cart.navigationOptions = () => ({
+Cart.navigationOptions = {
   title: 'Carrinho',
   headerTitleStyle: {
     color: colors.primary,
-    textAlign: 'center',
-    flex: 1,
+    alignSelf: 'center',
   },
-  headerStyle: {
-    backgroundColor: colors.white,
-    borderBottomWidth: 0,
-  },
+};
+
+Cart.propTypes = {
+  cart: PropTypes.shape({
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number,
+      }),
+    ),
+  }).isRequired,
+  total: PropTypes.number.isRequired,
+  removeProduct: PropTypes.func.isRequired,
+  updateProduct: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = state => ({
+  cart: state.cart,
+  total: state.cart.data.reduce((total, product) => total + product.price * product.quantity, 0),
 });
 
-// Main.propTypes = {
-//   navigation: PropTypes.shape({
-//     navigate: PropTypes.func,
-//   }).isRequired,
-//   categoryProducts: PropTypes.shape({
-//     products: PropTypes.arrayOf(
-//       PropTypes.shape({
-//         id: PropTypes.number,
-//       }),
-//     ),
-//   }).isRequired,
-// };
+const mapDispatchToProps = dispatch => bindActionCreators(CartActions, dispatch);
 
-export default Cart;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Cart);
